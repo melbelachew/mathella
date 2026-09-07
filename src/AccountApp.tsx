@@ -1,3 +1,4 @@
+import { resolveSavedCurriculum } from './curriculumCompatibility';
 import { useEffect, useRef, useState } from 'react';
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { collection, doc, onSnapshot, runTransaction } from 'firebase/firestore';
@@ -46,7 +47,7 @@ function Family({ user }: { user: User }) {
       setLearners(next); setSelected(old => next.some(l => l.id === old) ? old : next[0]?.id ?? ''); setLoaded(old => ({ ...old, learners: true }));
     }, fail);
     const stopTopics = onSnapshot(doc(db, 'users', user.uid, 'settings', 'curriculum'), snap => {
-      try { const next: unknown = snap.exists() ? JSON.parse(snap.data().json) : CURRICULUM; validateCurriculum(next); setTopics(next); setLoaded(old => ({ ...old, topics: true })); } catch (e) { fail(e); }
+      try { const next: unknown = snap.exists() ? JSON.parse(snap.data().json) : CURRICULUM; validateCurriculum(next); setTopics(resolveSavedCurriculum(next)); setLoaded(old => ({ ...old, topics: true })); } catch (e) { fail(e); }
     }, fail);
     return () => { stopLearners(); stopTopics(); };
   }, [user.uid, retry]);

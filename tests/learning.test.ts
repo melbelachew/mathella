@@ -1,6 +1,8 @@
+import { resolveSavedCurriculum, completionKey } from '../src/curriculumCompatibility.ts';
+import { LEGACY_CURRICULUM } from '../src/legacyCurriculum.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseNumber, recordCompletion, validateCurriculum, mergeCurriculum, validProgress } from '../src/learning.ts';
+import { answerMatches, parseNumber, recordCompletion, validateCurriculum, mergeCurriculum, validProgress } from '../src/learning.ts';
 import { CURRICULUM } from '../src/curriculum.ts';
 test('accepts equivalent numeric answers without accepting malformed input', () => {
   for (const [input, expected] of [['3/4', .75], [' 6/8 ', .75], ['.375', .375], [' -1/2 ', -.5], ['3.0', 3]] as const) assert.equal(parseNumber(input), expected);
@@ -29,4 +31,35 @@ test('corrupted progress does not become a displayed score', () => {
   assert.equal(validProgress({ sparks: -1, done: {} }), false);
   assert.equal(validProgress({ sparks: 1, done: { x: 'yes' } }), false);
   assert.equal(validProgress({ sparks: 1, done: { x: true } }), true);
+});
+
+test('mixed numbers, equivalent fractions, and explicit decimal rounding are checked correctly', () => {
+  const repeating = { answer: 5/6, decimalPlaces: 4 };
+  for (const input of ['5/6', '10/12', '⅚', '.8333', '0.8333333333']) assert.equal(answerMatches(input, repeating), true, input);
+  for (const input of ['.833', '.83', '8333/10000', '1/0']) assert.equal(answerMatches(input, repeating), false, input);
+  for (const input of ['9/8', '1.125', '1 1/8', '1⅛']) assert.equal(answerMatches(input, { answer: 1.125 }), true, input);
+  assert.equal(answerMatches('40.01', { answer: 40 }), false);
+  assert.equal(parseNumber('-1 1/8'), -1.125);
+  assert.equal(parseNumber('1 1/0'), null);
+});
+test('saved default lessons update while custom topics and original completion keys survive', () => {
+  assert.deepEqual(resolveSavedCurriculum(structuredClone(LEGACY_CURRICULUM)), CURRICULUM);
+  const custom = { ...LEGACY_CURRICULUM[0], name: 'My Area' };
+  assert.equal(resolveSavedCurriculum([custom])[0], custom);
+  for (const oldTopic of LEGACY_CURRICULUM) {
+    const topic = CURRICULUM.find(t => t.id === oldTopic.id)!;
+    for (const [mode, field] of [['solve','problems'], ['detect','detectives'], ['recall','cards']] as const) {
+      oldTopic[field].forEach((p, oldIndex) => {
+        const index = topic[field].findIndex(item => JSON.stringify(item) === JSON.stringify(p));
+        if (index >= 0) assert.equal(completionKey(topic, mode, index), [topic.id, mode, oldIndex, JSON.stringify(p)].join('|'));
+      });
+    }
+  }
+});
+test('expanded lessons validate mixed labels and reject invalid precision', () => {
+  assert.equal(CURRICULUM.reduce((n,t) => n+t.problems.length,0),54);
+  for (const precision of [-1, 1.5, 9]) {
+    const bad = structuredClone(CURRICULUM); bad[0].problems[0].decimalPlaces = precision;
+    assert.throws(() => validateCurriculum(bad));
+  }
 });
