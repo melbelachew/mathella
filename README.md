@@ -19,7 +19,7 @@ npm run build
 npm run preview
 ```
 
-`dist/` is the production website. It is generated, not checked into Git. Relative asset paths allow the build to work at `/mathella/` or on another static host. No API keys, backend, or environment variables are needed.
+`dist/` is the production website. It is generated, not checked into Git. Relative asset paths allow the build to work at `/mathella/` or on another static host. The bundled public Firebase web configuration points to `mathella-f7da0`. No private keys or environment variables are required in the browser. Firebase Console setup is required for cloud features; guest mode remains available.
 
 ## Upload this ZIP to your repository
 
@@ -67,7 +67,11 @@ Each topic has a unique `id`, `name`, `subtitle`, and three nonempty arrays: `pr
 
 For browser-only changes, use **For grown-ups → Download curriculum JSON**, edit the file, and import it. Matching topic IDs replace existing topics while retaining order; new IDs append topics. Keep a copy of your customized JSON.
 
-All progress and imports use browser local storage. They do not sync between devices or domains, and clearing browser data removes them. Moving from the original private site to GitHub Pages starts with fresh progress. Export/import transfers customized curriculum, not progress. Existing browser imports override the bundled curriculum until replaced or browser storage is cleared.
+Guest progress and imports use browser local storage. Signed-in parent accounts use Firebase Authentication and Firestore to sync learner progress and account curriculum. The parent can explicitly import this browser's existing guest data. Nicknames are learner profiles, not separate child logins.
+
+**Required Firebase setup:** follow [FIREBASE_SETUP.md](FIREBASE_SETUP.md) to enable Google sign-in, authorize the website domain, and publish the supplied database rules. The GitHub workflow publishes the website and tests the rules; it does not deploy live Firebase rules without a separate authenticated setup.
+
+Cloud saves need a connection. Failed challenge saves can be retried while the page remains open. Formula review queues remain session-local. Sparks indicate participation, not verified mastery.
 
 ## Project structure
 
