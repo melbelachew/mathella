@@ -57,9 +57,43 @@ test('saved default lessons update while custom topics and original completion k
   }
 });
 test('expanded lessons validate mixed labels and reject invalid precision', () => {
-  assert.equal(CURRICULUM.reduce((n,t) => n+t.problems.length,0),54);
+  assert.equal(CURRICULUM.reduce((n,t) => n+t.problems.length,0),145);
   for (const precision of [-1, 1.5, 9]) {
     const bad = structuredClone(CURRICULUM); bad[0].problems[0].decimalPlaces = precision;
     assert.throws(() => validateCurriculum(bad));
   }
+});
+
+test('negative answers accept keyboard and typographic minus signs', () => {
+  for (const [input, answer] of [['-2.5',-2.5], ['−2.5',-2.5], ['−3/4',-.75], ['−¾',-.75], ['-7',-7], ['−7',-7]] as const) {
+    assert.equal(answerMatches(input, { answer }), true, input);
+    assert.equal(answerMatches(input, { answer: -answer }), false, input);
+  }
+  for (const input of ['--7', '−−7', '-']) assert.equal(parseNumber(input), null);
+});
+test('unitless imports are valid but missing or non-text units are rejected', () => {
+  const data = structuredClone(CURRICULUM);
+  data[0].problems[0].unit = '';
+  validateCurriculum(data);
+  for (const unit of [undefined, null, 12]) {
+    const bad = structuredClone(data) as any;
+    bad[0].problems[0].unit = unit;
+    assert.throws(() => validateCurriculum(bad));
+  }
+});
+test('new topics appear for saved accounts without overwriting custom topics during partial import', () => {
+  const custom = { ...CURRICULUM[2], name: 'Family ratios' };
+  const previous = [CURRICULUM[0], CURRICULUM[1], custom];
+  const upgraded = resolveSavedCurriculum(previous);
+  assert.equal(upgraded.length, 7);
+  assert.equal(upgraded.find(t => t.id === 'ratios'), custom);
+  assert.deepEqual(resolveSavedCurriculum(upgraded), upgraded);
+  const incoming = [{ ...CURRICULUM[0], name: 'Family area' }];
+  const merged = mergeCurriculum(upgraded, resolveSavedCurriculum(incoming, false));
+  assert.equal(merged.find(t => t.id === 'ratios'), custom);
+  assert.equal(merged[0].name, 'Family area');
+  const rational = CURRICULUM.find(t => t.id === 'rationals')!;
+  const data = CURRICULUM.find(t => t.id === 'data')!;
+  assert.equal(rational.problems.find(p => p.title === 'Which quadrant?')!.answer, 3);
+  assert.equal(data.problems.find(p => p.title === 'Frequency table')!.answer, 4);
 });

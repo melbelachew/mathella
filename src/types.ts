@@ -1,5 +1,5 @@
 export type Mode = 'solve' | 'detect' | 'recall';
-export interface Problem { title: string; text: string; answer: number; decimalPlaces?: number; unit: string; shape: 'rectangle' | 'square' | 'triangle' | 'parallelogram' | 'text'; a?: number | string; b?: number | string; visual?: string; steps: string[] }
+export interface Problem { title: string; text: string; answer: number; answerLabel?: string; decimalPlaces?: number; unit: string; shape: 'rectangle' | 'square' | 'triangle' | 'parallelogram' | 'text'; a?: number | string; b?: number | string; visual?: string; steps: string[] }
 export interface Detective { text: string; options: string[]; correct: number; why: string }
 export interface Card { prompt: string; formula: string; why: string; example: string }
 export interface Topic { id: string; name: string; subtitle: string; problems: Problem[]; detectives: Detective[]; cards: Card[] }

@@ -3,12 +3,14 @@ import { LEGACY_CURRICULUM } from './legacyCurriculum.ts';
 import type { Topic, Mode } from './types.ts';
 
 // Upgrade only untouched bundled topics; family-authored lessons stay intact.
-export function resolveSavedCurriculum(saved: Topic[]): Topic[] {
-  return saved.map(topic => {
+export function resolveSavedCurriculum(saved: Topic[], addNewTopics = true): Topic[] {
+  const upgraded = saved.map(topic => {
     const legacy = LEGACY_CURRICULUM.find(t => t.id === topic.id);
     return legacy && JSON.stringify(topic) === JSON.stringify(legacy)
       ? CURRICULUM.find(t => t.id === topic.id) ?? topic : topic;
   });
+  const newIds = new Set(['ratios', 'baseten', 'expressions', 'rationals', 'data']);
+  return addNewTopics ? upgraded.concat(CURRICULUM.filter(t => newIds.has(t.id) && !saved.some(s => s.id === t.id))) : upgraded;
 }
 
 export function completionKey(topic: Topic, mode: Mode, index: number): string {

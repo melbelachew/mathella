@@ -1,7 +1,7 @@
 import type { Topic, Progress, Problem } from './types.ts';
 const vulgarFractions: Record<string, string> = { '½':'1/2', '⅓':'1/3', '⅔':'2/3', '¼':'1/4', '¾':'3/4', '⅕':'1/5', '⅖':'2/5', '⅗':'3/5', '⅘':'4/5', '⅙':'1/6', '⅚':'5/6', '⅛':'1/8', '⅜':'3/8', '⅝':'5/8', '⅞':'7/8' };
 export function parseNumber(raw: string): number | null {
-  const s = raw.trim().replace(/[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]/g, c => ' ' + vulgarFractions[c]).replace(/⁄/g, '/').trim();
+  const s = raw.trim().replace(/−/g, '-').replace(/[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]/g, c => ' ' + vulgarFractions[c]).replace(/⁄/g, '/').trim().replace(/^([+-])\s+(?=\d)/, '$1');
   const mixed = s.match(/^([+-]?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
   if (mixed) {
     const [, sign, whole, numerator, denominator] = mixed;
@@ -36,7 +36,8 @@ export function validateCurriculum(data: unknown): asserts data is Topic[] {
     ids.add(t.id);
     for (const k of ['problems', 'detectives', 'cards']) if (!Array.isArray(t[k]) || !t[k].length || t[k].length > 200) throw Error('Each topic needs 1–200 problems, detectives, and cards.');
     for (const p of t.problems as unknown[]) {
-      if (!record(p) || !text(p.title) || !text(p.text) || !text(p.unit) || typeof p.answer !== 'number' || !Number.isFinite(p.answer) || !texts(p.steps) || !['rectangle','square','triangle','parallelogram','text'].includes(String(p.shape))) throw Error('A problem needs a valid answer, shape, and explanation steps.');
+      if (!record(p) || !text(p.title) || !text(p.text) || (typeof p.unit !== 'string' || p.unit.length >= 6000) || typeof p.answer !== 'number' || !Number.isFinite(p.answer) || !texts(p.steps) || !['rectangle','square','triangle','parallelogram','text'].includes(String(p.shape))) throw Error('A problem needs a valid answer, shape, and explanation steps.');
+      if (p.answerLabel !== undefined && !text(p.answerLabel)) throw Error('Answer labels must be nonempty text.');
       if (p.decimalPlaces !== undefined && (typeof p.decimalPlaces !== 'number' || !Number.isInteger(p.decimalPlaces) || p.decimalPlaces < 0 || p.decimalPlaces > 8)) throw Error('Decimal precision must be an integer from 0 to 8.');
       if (p.shape === 'text' ? !text(p.visual) : ![p.a,p.b].every(v => v === '?' || typeof v === 'number' && Number.isFinite(v) && v > 0 || typeof v === 'string' && (parseNumber(v) ?? 0) > 0)) throw Error('Check the diagram measurements or visual text.');
     }
