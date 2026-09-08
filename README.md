@@ -4,7 +4,7 @@ A React + TypeScript math learning app for a sixth grader, built with Vite. The 
 
 ## Run locally
 
-Install Node.js 24 LTS, then run:
+Install Node.js 24 LTS. Copy `.env.example` to `.env.local` and set `VITE_FIREBASE_API_KEY` to your Firebase web key. This local file is ignored by Git. Then run:
 
 ```sh
 npm ci
@@ -19,7 +19,7 @@ npm run build
 npm run preview
 ```
 
-`dist/` is the production website. It is generated, not checked into Git. Relative asset paths allow the build to work at `/mathella/` or on another static host. The bundled public Firebase web configuration points to `mathella-f7da0`. No private keys or environment variables are required in the browser. Firebase Console setup is required for cloud features; guest mode remains available.
+`dist/` is the production website. It is generated, not checked into Git. Relative asset paths allow the build to work at `/mathella/` or on another static host. The bundled public Firebase web configuration points to `mathella-f7da0`. The Firebase web API key is injected at build time from `VITE_FIREBASE_API_KEY`. It remains visible in the browser bundle; keep its API restrictions in place. Firebase Console setup is required for cloud features; guest mode remains available.
 
 ## Upload this ZIP to your repository
 
@@ -37,6 +37,8 @@ git push -u origin main
 Authenticate using your normal GitHub login flow or GitHub Desktop; never paste a personal token into a chat. If the repository now contains commits, clone it first and copy this project's files into that clone instead; do not force-push over existing work. Include `.github/workflows/deploy.yml` when copying files.
 
 ## Publish with GitHub Pages
+
+Before deploying, create a repository Actions secret named `VITE_FIREBASE_API_KEY` under Settings → Secrets and variables → Actions. Set its value to the Firebase web API key. A missing value stops the build before deployment, preserving the existing live site.
 
 1. In this repository, open **Settings → Pages**.
 2. Under **Build and deployment → Source**, select **GitHub Actions**.

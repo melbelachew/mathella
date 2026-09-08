@@ -50,3 +50,7 @@ npm run build
 ```
 
 Rules tests require Java 21 and use an isolated `demo-mathella` emulator project. They check guest denial, cross-account denial, profile validation, completion validation and private curriculum access. The GitHub workflow runs these tests before publishing the website. A real Google sign-in and cross-device smoke test must be performed after the console setup above; emulator tests do not validate the live project's configuration.
+
+## Build configuration
+
+Set the repository Actions secret `VITE_FIREBASE_API_KEY` before merging the environment configuration change. For local development, copy `.env.example` to `.env.local` and fill in the key. Never commit `.env.local`. The build refuses to deploy without a key. The public web key is still embedded in the generated browser JavaScript; API restrictions and database rules remain necessary. Removing it from current source does not erase older commits or close a secret-scanning alert.
