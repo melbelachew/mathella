@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 // Public web configuration. Access is enforced by Authentication and firestore.rules.
 const app = initializeApp({
-  apiKey: 'AIzaSyBuYdY0ETor5IfYeSyZIrrt_PnRb7SrRNw',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: 'mathella-f7da0.firebaseapp.com',
   projectId: 'mathella-f7da0',
   storageBucket: 'mathella-f7da0.firebasestorage.app',
