@@ -1,0 +1,47 @@
+import { readFileSync } from 'node:fs';
+import { after, before, beforeEach, test } from 'node:test';
+import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+let env;
+before(async () => { env = await initializeTestEnvironment({ projectId: 'demo-mathella', firestore: { rules: readFileSync('firestore.rules', 'utf8') } }); });
+beforeEach(async () => { await env.clearFirestore(); });
+after(async () => { await env?.cleanup(); });
+test('only the owning parent can read and write learner records', async () => {
+  const owner = env.authenticatedContext('parent-a').firestore();
+  const other = env.authenticatedContext('parent-b').firestore();
+  const guest = env.unauthenticatedContext().firestore();
+  const path = 'users/parent-a/learners/student';
+  await assertSucceeds(setDoc(doc(owner, path), { nickname: 'Explorer' }));
+  await assertSucceeds(getDoc(doc(owner, path)));
+  await assertFails(getDoc(doc(other, path)));
+  await assertFails(setDoc(doc(other, path), { nickname: 'Changed' }));
+  await assertFails(getDoc(doc(guest, path)));
+  await assertFails(getDocs(collection(other, 'users/parent-a/learners')));
+});
+test('completion ownership, parent existence, IDs and fields are enforced', async () => {
+  const a = env.authenticatedContext('parent-a').firestore();
+  const b = env.authenticatedContext('parent-b').firestore();
+  const path = 'users/parent-a/learners/student/completions/' + 'a'.repeat(64);
+  await assertFails(setDoc(doc(a, path), { completed: true }));
+  await assertSucceeds(setDoc(doc(a, 'users/parent-a/learners/student'), { nickname: 'Explorer' }));
+  await assertSucceeds(setDoc(doc(a, path), { completed: true }));
+  await assertSucceeds(setDoc(doc(a, path), { completed: true }));
+  await assertFails(setDoc(doc(a, path), { completed: false }));
+  await assertFails(setDoc(doc(a, path), { completed: true, sparks: 999 }));
+  await assertFails(setDoc(doc(b, path), { completed: true }));
+  await assertFails(getDocs(collection(b, 'users/parent-a/learners/student/completions')));
+});
+test('curriculum is private and malformed documents are denied', async () => {
+  const a = env.authenticatedContext('a').firestore();
+  const b = env.authenticatedContext('b').firestore();
+  const path = 'users/a/settings/curriculum';
+  await assertSucceeds(setDoc(doc(a, path), { json: '[]' }));
+  await assertSucceeds(getDoc(doc(a, path)));
+  await assertFails(getDoc(doc(b, path)));
+  await assertFails(setDoc(doc(a, path), { json: 12 }));
+  await assertFails(setDoc(doc(a, path), { json: '[]', public: true }));
+  await assertFails(setDoc(doc(a, 'users/a/learners/x'), { nickname: '' }));
+  await assertFails(setDoc(doc(a, 'users/a/learners/x'), { nickname: 'a'.repeat(41) }));
+  await assertFails(setDoc(doc(a, 'users/a/learners/x'), { nickname: 'Name', role: 'admin' }));
+  await assertFails(setDoc(doc(a, 'unrelated/x'), { anything: true }));
+});
