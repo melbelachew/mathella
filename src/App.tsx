@@ -1,10 +1,11 @@
+import { resolveSavedCurriculum } from './curriculumCompatibility';
 import { useEffect, useState } from 'react';
 import { CURRICULUM } from './curriculum';
 import { mergeCurriculum, recordCompletion, validateCurriculum, validProgress } from './learning';
 import type { Mode, Progress, Topic } from './types';
 import Activity from './Activity';
 import ParentPanel from './ParentPanel';
-function loadTopics(): Topic[] { try { const saved: unknown = JSON.parse(localStorage.getItem('mathspark-topics') ?? 'null'); if (saved) { validateCurriculum(saved); return saved; } } catch { /* Missing or invalid storage uses bundled curriculum. */ } return CURRICULUM; }
+function loadTopics(): Topic[] { try { const saved: unknown = JSON.parse(localStorage.getItem('mathspark-topics') ?? 'null'); if (saved) { validateCurriculum(saved); return resolveSavedCurriculum(saved); } } catch { /* Missing or invalid storage uses bundled curriculum. */ } return CURRICULUM; }
 function loadProgress(): Progress { try { const saved: unknown = JSON.parse(localStorage.getItem('mathspark-progress') ?? 'null'); if (validProgress(saved)) return saved; } catch { /* Browser storage is optional. */ } return { sparks: 0, done: {} }; }
 const modes: { id: Mode; label: string }[] = [{ id: 'solve', label: 'Solve & explore' }, { id: 'detect', label: 'Word detective' }, { id: 'recall', label: 'Formula flip' }];
 export default function App({ cloud }: { cloud?: { topics: Topic[]; sparks: number; scope: string; onAward: (key: string) => void; onImport: (topics: Topic[]) => Promise<void> } }) {

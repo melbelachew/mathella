@@ -50,22 +50,23 @@ GitHub Pages setup: https://docs.github.com/en/pages/getting-started-with-github
 
 ## Included learning experiences
 
-- Eight area challenges: rectangles, squares, triangles, parallelograms, missing dimensions, decimal measurements, and combined areas.
-- A four-challenge fractions starter.
+- 28 area challenges, including trapezoids, rhombuses, kites, hexagons, coordinate grids, and surface area.
+- 26 fraction challenges, including mixed numbers and fraction operations.
+- 29 word detective questions and 24 formula cards across both topics.
 - Word detective: identify a quantity or operation before calculating.
 - Formula recall cards, with a queue to revisit tricky ideas.
 - Progressive hints, encouraging feedback, and sparks without a timer or hint penalties.
 - Parent curriculum JSON import/export.
 
-This is a starting curriculum, not a complete sixth-grade course. Sparks count participation, not mastery. Fractions can be entered as `3/4` or `0.75`; mixed-number notation is not supported.
+This is a starting curriculum, not a complete sixth-grade course. Sparks count participation, not mastery. Answers accept decimals, fractions such as `3/4`, and mixed numbers such as `1 1/8` or `1⅛`.
 
 ## Update or add curriculum
 
 Edit `src/curriculum.ts` for changes shared by everyone visiting the website. Topic definitions live in `src/types.ts` and import validation lives in `src/learning.ts`.
 
-Each topic has a unique `id`, `name`, `subtitle`, and three nonempty arrays: `problems`, `detectives`, and `cards`. Detective `correct` values are zero-based option indexes. Problem `answer` values are numbers, including decimal equivalents for fractions. Diagrams support rectangle, square, triangle, parallelogram, or text. Measurements in diagrams are illustrative, not to scale.
+Each topic has a unique `id`, `name`, `subtitle`, and three nonempty arrays: `problems`, `detectives`, and `cards`. Detective `correct` values are zero-based option indexes. Problem `answer` values are numbers, including decimal equivalents for fractions. Diagrams support rectangle, square, triangle, parallelogram, or text. Measurements in diagrams are illustrative, not to scale. New shapes, nets, and coordinate questions use text expressions. Optional `decimalPlaces` (0–8) accepts decimal answers within half a unit of that precision; fraction inputs are checked against the exact numeric answer. The 5/6-cup question accepts `5/6` or a decimal rounded to four places.
 
-For browser-only changes, use **For grown-ups → Download curriculum JSON**, edit the file, and import it. Matching topic IDs replace existing topics while retaining order; new IDs append topics. Keep a copy of your customized JSON.
+For browser-only changes, use **For grown-ups → Download curriculum JSON**, edit the file, and import it. Matching topic IDs replace existing topics while retaining order; new IDs append topics. Keep a copy of your customized JSON. Saved topics identical to the original bundled lessons automatically use the expanded lessons. Customized topics stay unchanged. Unchanged original questions retain their completion keys even when reordered, preserving spark deduplication.
 
 Guest progress and imports use browser local storage. Signed-in parent accounts use Firebase Authentication and Firestore to sync learner progress and account curriculum. The parent can explicitly import this browser's existing guest data. Nicknames are learner profiles, not separate child logins.
 

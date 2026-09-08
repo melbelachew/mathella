@@ -1,3 +1,4 @@
+import { resolveSavedCurriculum } from './curriculumCompatibility';
 import { doc, runTransaction } from 'firebase/firestore';
 import { db } from './firebase';
 import { CURRICULUM } from './curriculum';
@@ -18,7 +19,7 @@ export async function saveCurriculum(uid: string, incoming: Topic[]) {
     const current = await tx.get(ref);
     const previous: unknown = current.exists() ? JSON.parse(current.data().json) : CURRICULUM;
     validateCurriculum(previous);
-    const json = JSON.stringify(mergeCurriculum(previous, incoming));
+    const json = JSON.stringify(mergeCurriculum(resolveSavedCurriculum(previous), resolveSavedCurriculum(incoming)));
     if (new TextEncoder().encode(json).length > 700_000) throw Error('This curriculum is too large to sync. Keep the combined curriculum under 700 KB.');
     tx.set(ref, { json });
   });
